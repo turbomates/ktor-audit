@@ -1,9 +1,12 @@
+import java.time.Duration
+
 plugins {
     kotlin("jvm") version "2.1.21"
     alias(deps.plugins.nexus.release)
     alias(deps.plugins.test.logger)
     `maven-publish`
     signing
+
 }
 
 group = "com.turbomates.ktor-audit"
@@ -52,7 +55,7 @@ publishing {
                 licenses {
                     license {
                         name.set("MIT License")
-                        url.set("https://github.com/turbomates/hoplite/blob/main/LICENSE")
+                        url.set("https://github.com/turbomates/ktor-audit/blob/main/LICENSE")
                     }
                 }
 
@@ -72,25 +75,35 @@ publishing {
             }
         }
     }
+}
+nexusPublishing {
     repositories {
-        maven {
-            val releasesUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            val snapshotsUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsUrl else releasesUrl
-            credentials {
-                username = System.getenv("ORG_GRADLE_PROJECT_SONATYPE_USERNAME") ?: project.properties["ossrhUsername"].toString()
-                password = System.getenv("ORG_GRADLE_PROJECT_SONATYPE_PASSWORD") ?: project.properties["ossrhPassword"].toString()
-            }
+        sonatype {
+            // Central Portal OSSRH Staging API URLs
+            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
+
+            username.set(
+                System.getenv("ORG_GRADLE_PROJECT_SONATYPE_USERNAME")
+                    ?: project.findProperty("centralPortalUsername")?.toString()
+            )
+            password.set(
+                System.getenv("ORG_GRADLE_PROJECT_SONATYPE_PASSWORD")
+                    ?: project.findProperty("centralPortalPassword")?.toString()
+            )
         }
     }
-}
 
+    // Настройки тайм-аутов (опционально)
+    connectTimeout.set(Duration.ofMinutes(3))
+    clientTimeout.set(Duration.ofMinutes(3))
+
+    // Транзакционная публикация с автоматическим релизом
+    transitionCheckOptions {
+        maxRetries.set(40)
+        delayBetween.set(Duration.ofSeconds(10))
+    }
+}
 signing {
     sign(publishing.publications["mavenJava"])
-}
-
-nexusStaging {
-    serverUrl = "https://s01.oss.sonatype.org/service/local/"
-    username = System.getenv("ORG_GRADLE_PROJECT_SONATYPE_USERNAME") ?: project.properties["ossrhUsername"].toString()
-    password = System.getenv("ORG_GRADLE_PROJECT_SONATYPE_PASSWORD") ?: project.properties["ossrhPassword"].toString()
 }
