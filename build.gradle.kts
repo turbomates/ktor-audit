@@ -45,6 +45,7 @@ publishing {
         create<MavenPublication>("mavenJava") {
             artifactId = "ktor-audit"
             groupId = "com.turbomates"
+            version = System.getenv("RELEASE_VERSION") ?: "0.1.0"
             from(components["java"])
             pom {
                 packaging = "jar"
