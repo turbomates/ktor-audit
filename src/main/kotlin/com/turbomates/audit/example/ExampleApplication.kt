@@ -2,7 +2,6 @@ package com.turbomates.audit.example
 
 import com.turbomates.audit.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
@@ -46,18 +45,6 @@ fun Application.configureAuditLogExample() {
         }
     }
 
-    // Configure authentication (optional)
-    install(Authentication) {
-        basic("basic") {
-            validate { credentials ->
-                // In a real app, validate against a database or external service
-                if (credentials.name == "admin" && credentials.password == "secret") {
-                    UserIdPrincipal("admin")
-                } else null
-            }
-        }
-    }
-
     // Configure routing
     routing {
         // Public endpoints
@@ -70,23 +57,21 @@ fun Application.configureAuditLogExample() {
         }
 
         // Protected endpoints that will be audited
-        authenticate("basic") {
-            post("/users") {
-                // This will be audited with principal information
-                call.respond("User created")
-            }
+        post("/users") {
+            // This will be audited with principal information
+            call.respond("User created")
+        }
 
-            put("/users/{id}") {
-                val id = call.parameters["id"]
-                // This will be audited with principal and path parameters
-                call.respond("User $id updated")
-            }
+        put("/users/{id}") {
+            val id = call.parameters["id"]
+            // This will be audited with principal and path parameters
+            call.respond("User $id updated")
+        }
 
-            delete("/users/{id}") {
-                val id = call.parameters["id"]
-                // This will be audited with principal and path parameters
-                call.respond("User $id deleted")
-            }
+        delete("/users/{id}") {
+            val id = call.parameters["id"]
+            // This will be audited with principal and path parameters
+            call.respond("User $id deleted")
         }
 
         // Example of route-level auditing using audit() function
@@ -107,9 +92,8 @@ fun Application.configureAuditLogExample() {
             val entries = auditStorage.getAllEntries()
             val response = entries.joinToString("\n") { entry ->
                 "Time: ${entry.timestamp}, Method: ${entry.method}, Path: ${entry.path}, " +
-                "Principal: ${entry.principal?.let { (it as? UserIdPrincipal)?.name ?: it.toString() } ?: "Anonymous"}, " +
-                "Remote: ${entry.remoteHost}" +
-                (entry.requestBody?.let { ", Body: $it" } ?: "")
+                        "Remote: ${entry.remoteHost}" +
+                        (entry.requestBody?.let { ", Body: $it" } ?: "")
             }
             call.respond(response.ifEmpty { "No audit logs found" })
         }
@@ -121,8 +105,8 @@ fun Application.configureAuditLogExample() {
  */
 class ConsoleAuditLogStorage : AuditLogStorage {
     override suspend fun store(entry: AuditLogEntry) {
-        println("AUDIT LOG: ${entry.timestamp} | ${entry.method} ${entry.path} | " +
-                "Principal: ${entry.principal?.let { (it as? UserIdPrincipal)?.name ?: it.toString() } ?: "Anonymous"} | " +
+        println(
+            "AUDIT LOG: ${entry.timestamp} | ${entry.method} ${entry.path} | " +
                 "Remote: ${entry.remoteHost}")
     }
 }
