@@ -18,11 +18,11 @@ dependencies {
     implementation(deps.ktor.server.core)
     implementation(deps.kotlinx.coroutines.core)
     implementation(deps.kotlinx.datetime)
+    implementation(deps.ktor.server.auth)
 
     testImplementation(kotlin("test"))
     testImplementation(deps.ktor.server.test.host)
     testImplementation(deps.ktor.server.netty)
-    testImplementation(deps.ktor.server.auth)
     testImplementation(deps.ktor.server.double.receive)
 }
 
