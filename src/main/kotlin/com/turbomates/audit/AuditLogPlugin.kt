@@ -15,11 +15,6 @@ import kotlinx.datetime.Clock
 val AuditRouteKey = AttributeKey<String>("AuditRoute")
 
 /**
- * Attribute key for storing request body
- */
-val RequestBodyKey = AttributeKey<String>("RequestBody")
-
-/**
  * Routing extension function to mark routes for auditing
  */
 fun Route.audit(name: String, build: Route.() -> Unit): Route {
@@ -91,7 +86,7 @@ val AuditLog = createApplicationPlugin(
                 kotlin.runCatching { call.receiveText() }.getOrDefault("Need to install DoubleReceive feature")
         }
         val auditEntry = AuditLogEntry(
-            principal = principal,
+            principal = config.principal(call),
             timestamp = timestamp,
             method = method,
             path = path,

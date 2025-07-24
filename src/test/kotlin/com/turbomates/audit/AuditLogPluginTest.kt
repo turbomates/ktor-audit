@@ -10,6 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import java.util.UUID
 import kotlinx.coroutines.delay
 import kotlin.test.*
 
@@ -100,6 +101,14 @@ class AuditLogPluginTest {
 
             install(AuditLog) {
                 this.storage = storage
+                principal = { call ->
+                    val principal = call.principal<UserIdPrincipal>()
+                    if (principal != null) {
+                        AuditLogPrincipal(UUID.randomUUID().toString(), principal.name, "User")
+                    } else {
+                        null
+                    }
+                }
             }
 
             routing {
@@ -127,8 +136,8 @@ class AuditLogPluginTest {
         assertEquals("GET", entry.method)
         assertEquals("/protected", entry.path)
         assertNotNull(entry.principal)
-        assertTrue(entry.principal is UserIdPrincipal)
-        assertEquals("user", (entry.principal as UserIdPrincipal).name)
+        assertTrue(entry.principal is AuditLogPrincipal)
+        assertEquals("User", (entry.principal as AuditLogPrincipal).name)
     }
 
     @Test

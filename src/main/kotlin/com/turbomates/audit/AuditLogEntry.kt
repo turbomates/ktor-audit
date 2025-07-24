@@ -1,13 +1,12 @@
 package com.turbomates.audit
 
-import io.ktor.server.auth.*
 import kotlinx.datetime.Instant
 
 /**
  * Represents an audit log entry containing information about a request
  */
 data class AuditLogEntry(
-    val principal: Principal?,
+    val principal: AuditLogPrincipal?,
     val timestamp: Instant,
     val method: String,
     val path: String,
@@ -16,4 +15,10 @@ data class AuditLogEntry(
     val remoteHost: String?,
     val userAgent: String?,
     val requestBody: String? = null
+)
+
+data class AuditLogPrincipal(
+    val id: String,
+    val type: String,
+    val name: String? = null
 )

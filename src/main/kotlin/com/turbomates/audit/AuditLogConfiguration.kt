@@ -35,6 +35,12 @@ class AuditLogConfiguration {
     var excludedPaths: Set<String> = setOf("/health", "/metrics")
 
     /**
+     * Function to extract principal information from the call
+     * Returns an AuditLogPrincipal or null if not applicable
+     */
+    var principal: (io.ktor.server.application.ApplicationCall) -> AuditLogPrincipal? = { null }
+
+    /**
      * Function to determine if a request should be audited
      * Returns true if the request should be audited, false otherwise
      */
