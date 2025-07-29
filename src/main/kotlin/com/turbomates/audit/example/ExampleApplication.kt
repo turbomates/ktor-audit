@@ -103,10 +103,19 @@ fun Application.configureAuditLogExample() {
 /**
  * Custom storage implementation that logs to console
  */
-class ConsoleAuditLogStorage : AuditLogStorage {
+class ConsoleAuditLogStorage : AuditLogStorage<EmptySearchCriteria> {
     override suspend fun store(entry: AuditLogEntry) {
         println(
             "AUDIT LOG: ${entry.timestamp} | ${entry.method} ${entry.path} | " +
                 "Remote: ${entry.remoteHost}")
+    }
+
+    override suspend fun search(
+        criteria: EmptySearchCriteria,
+        limit: Int,
+        offset: Int
+    ): List<AuditLogEntry> {
+        // Console storage doesn't retain entries, so search returns empty list
+        return emptyList()
     }
 }

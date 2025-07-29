@@ -386,4 +386,262 @@ class AuditLogPluginTest {
         assertEquals("POST", entry.method)
         assertNull(entry.requestBody)
     }
+
+    @Test
+    fun testAuditLogSearchByMethod() = testApplication {
+        val storage = InMemoryAuditLogStorage()
+
+        application {
+            install(AuditLog) {
+                this.storage = storage
+            }
+
+            routing {
+                get("/test") { call.respond("GET response") }
+                post("/test") { call.respond("POST response") }
+                put("/test") { call.respond("PUT response") }
+            }
+        }
+
+        // Make requests with different methods
+        client.get("/test")
+        client.post("/test")
+        client.put("/test")
+
+        delay(100)
+
+        // Search for POST requests only
+        val postResults = storage.search(InMemorySearchCriteria(method = "POST"))
+        assertEquals(1, postResults.size)
+        assertEquals("POST", postResults.first().method)
+
+        // Search for GET requests only
+        val getResults = storage.search(InMemorySearchCriteria(method = "GET"))
+        assertEquals(1, getResults.size)
+        assertEquals("GET", getResults.first().method)
+    }
+
+    @Test
+    fun testAuditLogSearchByPath() = testApplication {
+        val storage = InMemoryAuditLogStorage()
+
+        application {
+            install(AuditLog) {
+                this.storage = storage
+            }
+
+            routing {
+                get("/users") { call.respond("Users") }
+                get("/orders") { call.respond("Orders") }
+                get("/products") { call.respond("Products") }
+            }
+        }
+
+        // Make requests to different paths
+        client.get("/users")
+        client.get("/orders")
+        client.get("/products")
+
+        delay(100)
+
+        // Search for specific path
+        val userResults = storage.search(InMemorySearchCriteria(path = "/users"))
+        assertEquals(1, userResults.size)
+        assertEquals("/users", userResults.first().path)
+
+        // Search for non-existent path
+        val nonExistentResults = storage.search(InMemorySearchCriteria(path = "/nonexistent"))
+        assertEquals(0, nonExistentResults.size)
+    }
+
+    @Test
+    fun testAuditLogSearchByPrincipal() = testApplication {
+        val storage = InMemoryAuditLogStorage()
+
+        application {
+            install(Authentication) {
+                basic("basic") {
+                    validate { credentials ->
+                        when (credentials.name) {
+                            "user1" -> UserIdPrincipal("user1")
+                            "user2" -> UserIdPrincipal("user2")
+                            else -> null
+                        }
+                    }
+                }
+            }
+
+            install(AuditLog) {
+                this.storage = storage
+                principal = { call ->
+                    val principal = call.principal<UserIdPrincipal>()
+                    if (principal != null) {
+                        AuditLogPrincipal(UUID.randomUUID().toString(), "User", principal.name)
+                    } else {
+                        null
+                    }
+                }
+            }
+
+            routing {
+                authenticate("basic") {
+                    get("/protected") { call.respond("Protected resource") }
+                }
+            }
+        }
+
+        // Make authenticated requests with different users
+        client.get("/protected") {
+            header(HttpHeaders.Authorization, "Basic dXNlcjE6cGFzcw==") // user1:pass
+        }
+        client.get("/protected") {
+            header(HttpHeaders.Authorization, "Basic dXNlcjI6cGFzcw==") // user2:pass
+        }
+
+        delay(100)
+
+        // Search by principal name
+        val user1Results = storage.search(InMemorySearchCriteria(principal = "user1"))
+        assertEquals(1, user1Results.size)
+        assertEquals("user1", (user1Results.first().principal as AuditLogPrincipal).name)
+
+        val user2Results = storage.search(InMemorySearchCriteria(principal = "user2"))
+        assertEquals(1, user2Results.size)
+        assertEquals("user2", (user2Results.first().principal as AuditLogPrincipal).name)
+    }
+
+    @Test
+    fun testAuditLogSearchByTimestamp() = testApplication {
+        val storage = InMemoryAuditLogStorage()
+
+        application {
+            install(AuditLog) {
+                this.storage = storage
+            }
+
+            routing {
+                get("/test") { call.respond("Test") }
+            }
+        }
+
+        val beforeTime = kotlinx.datetime.Clock.System.now()
+        
+        // Make a request
+        client.get("/test")
+        delay(100)
+        
+        val afterTime = kotlinx.datetime.Clock.System.now()
+
+        // Search by timestamp range
+        val results = storage.search(InMemorySearchCriteria(
+            timestampFrom = beforeTime,
+            timestampTo = afterTime
+        ))
+        assertEquals(1, results.size)
+
+        // Search with timestamp range that excludes the entry
+        val futureTime = afterTime.plus(kotlin.time.Duration.parse("1h"))
+        val noResults = storage.search(InMemorySearchCriteria(
+            timestampFrom = futureTime
+        ))
+        assertEquals(0, noResults.size)
+    }
+
+    @Test
+    fun testAuditLogSearchCombinedParameters() = testApplication {
+        val storage = InMemoryAuditLogStorage()
+
+        application {
+            install(AuditLog) {
+                this.storage = storage
+            }
+
+            routing {
+                get("/users") { call.respond("GET Users") }
+                post("/users") { call.respond("POST Users") }
+                get("/orders") { call.respond("GET Orders") }
+            }
+        }
+
+        // Make multiple requests
+        client.get("/users")
+        client.post("/users")
+        client.get("/orders")
+
+        delay(100)
+
+        // Search with combined parameters
+        val results = storage.search(InMemorySearchCriteria(
+            method = "GET",
+            path = "/users"
+        ))
+        assertEquals(1, results.size)
+        assertEquals("GET", results.first().method)
+        assertEquals("/users", results.first().path)
+
+        // Search that should return no results
+        val noResults = storage.search(InMemorySearchCriteria(
+            method = "DELETE",
+            path = "/users"
+        ))
+        assertEquals(0, noResults.size)
+    }
+
+    @Test
+    fun testAuditLogSearchPagination() = testApplication {
+        val storage = InMemoryAuditLogStorage()
+
+        application {
+            install(AuditLog) {
+                this.storage = storage
+            }
+
+            routing {
+                get("/test") { call.respond("Test") }
+            }
+        }
+
+        // Make multiple requests to have enough entries for pagination
+        repeat(5) {
+            client.get("/test")
+        }
+
+        delay(100)
+
+        // Test pagination
+        val firstPage = storage.search(InMemorySearchCriteria(method = "GET"), limit = 2, offset = 0)
+        assertEquals(2, firstPage.size)
+
+        val secondPage = storage.search(InMemorySearchCriteria(method = "GET"), limit = 2, offset = 2)
+        assertEquals(2, secondPage.size)
+
+        val thirdPage = storage.search(InMemorySearchCriteria(method = "GET"), limit = 2, offset = 4)
+        assertEquals(1, thirdPage.size)
+
+        // Verify no duplicate entries between pages
+        val allIds = (firstPage + secondPage + thirdPage).map { it.timestamp }.toSet()
+        assertEquals(5, allIds.size)
+    }
+
+    @Test
+    fun testAuditLogSearchWithEmptyCriteria() = testApplication {
+        val storage = InMemoryAuditLogStorage()
+
+        application {
+            install(AuditLog) {
+                this.storage = storage
+            }
+
+            routing {
+                get("/test") { call.respond("Test") }
+            }
+        }
+
+        client.get("/test")
+        delay(100)
+
+        // Search with empty criteria should return all entries
+        val results = storage.search(InMemorySearchCriteria())
+        assertEquals(1, results.size)
+    }
 }

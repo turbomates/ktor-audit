@@ -7,7 +7,7 @@ class AuditLogConfiguration {
     /**
      * Storage implementation to use for storing audit log entries
      */
-    var storage: AuditLogStorage = InMemoryAuditLogStorage()
+    var storage: AuditLogStorage<*> = InMemoryAuditLogStorage()
 
     /**
      * Whether to include request headers in the audit log

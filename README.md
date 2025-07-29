@@ -75,10 +75,19 @@ fun Application.configureAuditLog() {
 
 ## Storage Interface
 
-Implement the `AuditLogStorage` interface for custom storage backends:
+The `AuditLogStorage` interface is generic and requires you to define a `SearchCriteria` type for type-safe searching. Implement both the storage interface and a corresponding search criteria class for custom storage backends:
 
 ```kotlin
-class DatabaseAuditLogStorage : AuditLogStorage {
+// Define custom search criteria for your storage
+data class DatabaseSearchCriteria(
+    val method: String? = null,
+    val path: String? = null,
+    val userId: String? = null,
+    val dateFrom: LocalDateTime? = null,
+    val dateTo: LocalDateTime? = null
+) : SearchCriteria
+
+class DatabaseAuditLogStorage : AuditLogStorage<DatabaseSearchCriteria> {
     override suspend fun store(entry: AuditLogEntry) {
         // Store to database
         database.insertAuditLog(entry)
@@ -88,19 +97,108 @@ class DatabaseAuditLogStorage : AuditLogStorage {
         // Retrieve from database
         return database.getAuditLogs(limit, offset)
     }
+
+    override suspend fun search(
+        criteria: DatabaseSearchCriteria,
+        limit: Int,
+        offset: Int
+    ): List<AuditLogEntry> {
+        // Search database with criteria
+        return database.searchAuditLogs(criteria, limit, offset)
+    }
 }
 ```
 
 ### Built-in Storage Implementations
 
-- **InMemoryAuditLogStorage**: Simple in-memory storage for development and testing
-- **ConsoleAuditLogStorage**: Logs audit entries to console (see example)
+- **InMemoryAuditLogStorage**: Simple in-memory storage for development and testing with `InMemorySearchCriteria`
+- **ConsoleAuditLogStorage**: Logs audit entries to console with `EmptySearchCriteria` (see example)
+
+### Searching Audit Logs
+
+The `AuditLogStorage` interface is now generic and uses typed search criteria. Each storage implementation defines its own `SearchCriteria` class for type-safe searching.
+
+#### InMemoryAuditLogStorage Search
+
+The `InMemoryAuditLogStorage` uses `InMemorySearchCriteria` for searching:
+
+```kotlin
+val storage = InMemoryAuditLogStorage()
+
+// Search by HTTP method
+val postRequests = storage.search(InMemorySearchCriteria(method = "POST"))
+
+// Search by path
+val userRequests = storage.search(InMemorySearchCriteria(path = "/users"))
+
+// Search by principal name
+val userActions = storage.search(InMemorySearchCriteria(principal = "john.doe"))
+
+// Search by remote host
+val hostRequests = storage.search(InMemorySearchCriteria(remoteHost = "192.168.1.100"))
+
+// Search by user agent
+val mobileRequests = storage.search(InMemorySearchCriteria(userAgent = "Mobile App"))
+
+// Search by time range
+val recentRequests = storage.search(InMemorySearchCriteria(
+    timestampFrom = Clock.System.now().minus(1.hours),
+    timestampTo = Clock.System.now()
+))
+
+// Combined search with pagination
+val results = storage.search(
+    criteria = InMemorySearchCriteria(
+        method = "POST",
+        path = "/users"
+    ),
+    limit = 50,
+    offset = 0
+)
+
+// Search with empty criteria (returns all entries)
+val allEntries = storage.search(InMemorySearchCriteria())
+```
+
+**InMemorySearchCriteria Properties:**
+- `method: String?`: HTTP method (GET, POST, PUT, DELETE, etc.)
+- `path: String?`: Request path
+- `principal: String?`: Principal name (authenticated user)
+- `remoteHost: String?`: Client IP address
+- `userAgent: String?`: User-Agent header value
+- `timestampFrom: Instant?`: Search entries after this timestamp
+- `timestampTo: Instant?`: Search entries before this timestamp
+
+#### Creating Custom Search Criteria
+
+When implementing your own storage, define a custom search criteria class:
+
+```kotlin
+data class MyCustomSearchCriteria(
+    val userId: String? = null,
+    val action: String? = null,
+    val severity: LogLevel? = null,
+    val tags: Set<String> = emptySet()
+) : SearchCriteria
+
+class MyCustomStorage : AuditLogStorage<MyCustomSearchCriteria> {
+    override suspend fun search(
+        criteria: MyCustomSearchCriteria,
+        limit: Int,
+        offset: Int
+    ): List<AuditLogEntry> {
+        // Implement search logic using criteria properties
+        return searchImplementation(criteria, limit, offset)
+    }
+    // ... other methods
+}
+```
 
 ## Audit Log Entry Structure
 
 ```kotlin
 data class AuditLogEntry(
-    val principal: Principal?,           // Authenticated user (null if anonymous)
+    val principal: AuditLogPrincipal?,   // Authenticated user info (null if anonymous)
     val timestamp: Instant,              // Request timestamp
     val method: String,                  // HTTP method (GET, POST, etc.)
     val path: String,                    // Request path
@@ -110,24 +208,150 @@ data class AuditLogEntry(
     val userAgent: String?,              // User-Agent header
     val requestBody: String?             // Request body (for POST requests, null otherwise)
 )
+
+data class AuditLogPrincipal(
+    val id: String,        // Unique identifier for the principal
+    val type: String,      // Type/role of the principal (e.g., "User", "Admin", "Service")
+    val name: String?      // Display name or username (optional)
+)
 ```
 
 ## Configuration Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `storage` | `AuditLogStorage` | `InMemoryAuditLogStorage()` | Storage implementation |
+| `storage` | `AuditLogStorage<*>` | `InMemoryAuditLogStorage()` | Storage implementation |
 | `includeHeaders` | `Boolean` | `true` | Include request headers in audit log |
 | `includeQueryParameters` | `Boolean` | `true` | Include query parameters in audit log |
 | `includeRequestBody` | `Boolean` | `true` | Include request body for POST requests in audit log |
 | `excludedHeaders` | `Set<String>` | `setOf("authorization", "cookie", "set-cookie")` | Headers to exclude from logging |
 | `excludedPaths` | `Set<String>` | `setOf("/health", "/metrics")` | Paths to exclude from audit logging |
+| `principal` | `(ApplicationCall) -> AuditLogPrincipal?` | `{ null }` | Function to extract principal information from authenticated requests |
 | `shouldAudit` | `(String, String) -> Boolean` | Excludes paths in `excludedPaths` | Custom function to determine if request should be audited |
 | `headerFilter` | `(Map<String, List<String>>) -> Map<String, List<String>>` | Filters based on `excludedHeaders` | Custom header filtering function |
 
+## Principal Configuration
+
+The `principal` configuration option allows you to extract user information from authenticated requests and include it in audit logs. This callback function receives the current `ApplicationCall` and should return an `AuditLogPrincipal` object or `null`.
+
+### AuditLogPrincipal Structure
+
+```kotlin
+data class AuditLogPrincipal(
+    val id: String,        // Unique identifier for the principal
+    val type: String,      // Type/role of the principal (e.g., "User", "Admin", "Service")
+    val name: String? = null  // Display name or username (optional)
+)
+```
+
+### Basic Principal Configuration
+
+```kotlin
+install(AuditLog) {
+    storage = InMemoryAuditLogStorage()
+    
+    // Extract principal from Ktor's authentication system
+    principal = { call ->
+        val userPrincipal = call.principal<UserIdPrincipal>()
+        if (userPrincipal != null) {
+            AuditLogPrincipal(
+                id = userPrincipal.name,
+                type = "User",
+                name = userPrincipal.name
+            )
+        } else {
+            null // No authenticated user
+        }
+    }
+}
+```
+
+### Advanced Principal Configuration
+
+```kotlin
+install(AuditLog) {
+    storage = DatabaseAuditLogStorage()
+    
+    // Extract detailed principal information with role-based typing
+    principal = { call ->
+        when (val principal = call.principal()) {
+            is UserIdPrincipal -> AuditLogPrincipal(
+                id = principal.name,
+                type = "User",
+                name = principal.name
+            )
+            
+            is JWTPrincipal -> {
+                val userId = principal.payload.getClaim("sub").asString()
+                val userName = principal.payload.getClaim("name").asString()
+                val role = principal.payload.getClaim("role").asString() ?: "User"
+                
+                AuditLogPrincipal(
+                    id = userId,
+                    type = role,
+                    name = userName
+                )
+            }
+            
+            is UserPrincipal -> AuditLogPrincipal(
+                id = principal.user.id.toString(),
+                type = when (principal.user.role) {
+                    UserRole.ADMIN -> "Admin"
+                    UserRole.USER -> "User"
+                    UserRole.SERVICE -> "Service"
+                },
+                name = principal.user.displayName
+            )
+            
+            else -> null // Unknown or unauthenticated
+        }
+    }
+}
+```
+
+### Service-to-Service Authentication
+
+For API keys or service authentication:
+
+```kotlin
+install(AuditLog) {
+    principal = { call ->
+        // Check for API key in headers
+        val apiKey = call.request.headers["X-API-Key"]
+        if (apiKey != null) {
+            // Look up service by API key
+            val service = serviceRegistry.findByApiKey(apiKey)
+            if (service != null) {
+                AuditLogPrincipal(
+                    id = service.id,
+                    type = "Service",
+                    name = service.name
+                )
+            } else {
+                null
+            }
+        } else {
+            // Fall back to regular user authentication
+            val userPrincipal = call.principal<UserIdPrincipal>()
+            userPrincipal?.let { 
+                AuditLogPrincipal(
+                    id = it.name,
+                    type = "User", 
+                    name = it.name
+                )
+            }
+        }
+    }
+}
+```
+
+### Anonymous Request Handling
+
+When the principal callback returns `null`, the audit log entry will have `principal = null`, indicating an anonymous or unauthenticated request. This is useful for tracking public API usage or failed authentication attempts.
+
 ## Authentication Integration
 
-The plugin automatically captures authentication principals when used with Ktor's authentication system:
+The plugin works seamlessly with Ktor's authentication system:
 
 ```kotlin
 install(Authentication) {
@@ -142,6 +366,18 @@ install(Authentication) {
 
 install(AuditLog) {
     storage = MyAuditStorage()
+    
+    // Configure principal extraction
+    principal = { call ->
+        val userPrincipal = call.principal<UserIdPrincipal>()
+        userPrincipal?.let {
+            AuditLogPrincipal(
+                id = it.name,
+                type = "User",
+                name = it.name
+            )
+        }
+    }
 }
 
 routing {
@@ -217,12 +453,13 @@ This limitation ensures that the audit plugin doesn't interfere with normal appl
 See `src/main/kotlin/com/turbomates/audit/example/ExampleApplication.kt` for a complete example application demonstrating:
 
 - Basic plugin setup
-- Authentication integration
+- Authentication integration with principal configuration
 - Route-level auditing with `audit()` function
 - Request body collection for POST requests
-- Custom configuration
+- Custom configuration options
 - Multiple storage implementations
 - Audit log viewing endpoint
+- Principal extraction from authenticated requests
 
 ## Testing
 
@@ -234,6 +471,9 @@ The plugin includes comprehensive tests covering:
 - Path exclusion filtering
 - Header filtering
 - Custom configuration options
+- Search functionality with typed criteria
+- Pagination support
+- Combined search parameters
 
 Run tests with:
 ```bash
