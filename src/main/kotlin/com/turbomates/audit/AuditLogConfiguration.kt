@@ -1,5 +1,7 @@
 package com.turbomates.audit
 
+import io.ktor.server.application.ApplicationCall
+
 /**
  * Configuration for the AuditLog plugin
  */
@@ -37,7 +39,7 @@ class AuditLogConfiguration {
     /**
      * Function to modify the audit log entry before storing
      */
-    var modifyEntry: (AuditLogEntry) -> AuditLogEntry = { it }
+    var modifyEntry: (AuditLogEntry, ApplicationCall) -> AuditLogEntry = { entry, _ -> entry }
 
     /**
      * Function to extract principal information from the call

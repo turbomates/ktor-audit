@@ -110,7 +110,7 @@ val AuditLog = createApplicationPlugin(
         // Store the audit log entry asynchronously
         call.application.launch {
             try {
-                config.storage.store(config.modifyEntry(auditEntry))
+                config.storage.store(config.modifyEntry(auditEntry, call))
             } catch (e: Exception) {
                 call.application.log.error("Failed to store audit log entry", e)
             }
