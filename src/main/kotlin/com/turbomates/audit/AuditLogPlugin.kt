@@ -1,11 +1,21 @@
 package com.turbomates.audit
 
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.request.*
-import io.ktor.server.routing.*
-import io.ktor.util.*
+import io.ktor.http.Headers
+import io.ktor.http.HttpMethod
+import io.ktor.http.Parameters
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.call
+import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.log
+import io.ktor.server.plugins.origin
+import io.ktor.server.request.httpMethod
+import io.ktor.server.request.path
+import io.ktor.server.request.receiveText
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.RouteSelector
+import io.ktor.server.routing.RouteSelectorEvaluation
+import io.ktor.server.routing.RoutingResolveContext
+import io.ktor.util.AttributeKey
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.launch
@@ -67,8 +77,6 @@ val AuditLog = createApplicationPlugin(
             return@onCallRespond
         }
 
-        // Extract request information
-        val principal = call.principal<Principal>()
         val timestamp = Clock.System.now()
         val queryParameters = if (config.includeQueryParameters) {
             request.queryParameters.toParametersMap()
@@ -80,7 +88,7 @@ val AuditLog = createApplicationPlugin(
         val headers = config.headerFilter(request.headers.toHeadersMap())
 
         // Extract additional request information
-        val remoteHost = call.request.local.remoteHost
+        val remoteHost = call.request.origin.remoteHost
         val userAgent = request.headers["User-Agent"]
         var requestBody: String? = null
         if (config.includeRequestBody && call.request.httpMethod == HttpMethod.Post) {
@@ -102,7 +110,7 @@ val AuditLog = createApplicationPlugin(
         // Store the audit log entry asynchronously
         call.application.launch {
             try {
-                config.storage.store(auditEntry)
+                config.storage.store(config.modifyEntry(auditEntry))
             } catch (e: Exception) {
                 call.application.log.error("Failed to store audit log entry", e)
             }

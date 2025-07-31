@@ -35,6 +35,11 @@ class AuditLogConfiguration {
     var excludedPaths: Set<String> = setOf("/health", "/metrics")
 
     /**
+     * Function to modify the audit log entry before storing
+     */
+    var modifyEntry: (AuditLogEntry) -> AuditLogEntry = { it }
+
+    /**
      * Function to extract principal information from the call
      * Returns an AuditLogPrincipal or null if not applicable
      */
