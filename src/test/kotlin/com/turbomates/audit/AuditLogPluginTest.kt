@@ -13,6 +13,8 @@ import io.ktor.server.testing.*
 import java.util.UUID
 import kotlinx.coroutines.delay
 import kotlin.test.*
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 class AuditLogPluginTest {
 
@@ -387,6 +389,7 @@ class AuditLogPluginTest {
         assertNull(entry.requestBody)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testAuditLogSearchByMethod() = testApplication {
         val storage = InMemoryAuditLogStorage()
@@ -421,6 +424,7 @@ class AuditLogPluginTest {
         assertEquals("GET", getResults.first().method)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testAuditLogSearchByPath() = testApplication {
         val storage = InMemoryAuditLogStorage()
@@ -454,6 +458,7 @@ class AuditLogPluginTest {
         assertEquals(0, nonExistentResults.size)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testAuditLogSearchByPrincipal() = testApplication {
         val storage = InMemoryAuditLogStorage()
@@ -510,6 +515,7 @@ class AuditLogPluginTest {
         assertEquals("user2", (user2Results.first().principal as AuditLogPrincipal).name)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testAuditLogSearchByTimestamp() = testApplication {
         val storage = InMemoryAuditLogStorage()
@@ -524,13 +530,13 @@ class AuditLogPluginTest {
             }
         }
 
-        val beforeTime = kotlinx.datetime.Clock.System.now()
+        val beforeTime = Clock.System.now()
         
         // Make a request
         client.get("/test")
         delay(100)
         
-        val afterTime = kotlinx.datetime.Clock.System.now()
+        val afterTime = Clock.System.now()
 
         // Search by timestamp range
         val results = storage.search(InMemorySearchCriteria(
@@ -547,6 +553,7 @@ class AuditLogPluginTest {
         assertEquals(0, noResults.size)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testAuditLogSearchCombinedParameters() = testApplication {
         val storage = InMemoryAuditLogStorage()
@@ -587,6 +594,7 @@ class AuditLogPluginTest {
         assertEquals(0, noResults.size)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testAuditLogSearchPagination() = testApplication {
         val storage = InMemoryAuditLogStorage()
@@ -623,6 +631,7 @@ class AuditLogPluginTest {
         assertEquals(5, allIds.size)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testAuditLogSearchWithEmptyCriteria() = testApplication {
         val storage = InMemoryAuditLogStorage()

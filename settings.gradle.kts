@@ -11,7 +11,7 @@ dependencyResolutionManagement {
             version("kotlin", "2.1.2")
             version("test_logger", "3.0.0")
             version("nexus_staging", "2.0.0")
-            version("kotlinx-datetime", "0.5.0")
+            version("kotlinx-datetime", "0.7.1")
 
             library("ktor.server.core", "io.ktor", "ktor-server-core").versionRef("ktor")
             library("ktor.server.test.host", "io.ktor", "ktor-server-test-host").versionRef("ktor")

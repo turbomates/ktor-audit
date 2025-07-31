@@ -4,10 +4,12 @@ import com.turbomates.audit.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlin.time.ExperimentalTime
 
 /**
  * Example application demonstrating how to use the AuditLog plugin
  */
+@OptIn(ExperimentalTime::class)
 fun Application.configureAuditLogExample() {
     // Create a custom storage implementation (in real apps, this might be a database)
     val auditStorage = InMemoryAuditLogStorage()
@@ -104,6 +106,7 @@ fun Application.configureAuditLogExample() {
  * Custom storage implementation that logs to console
  */
 class ConsoleAuditLogStorage : AuditLogStorage<EmptySearchCriteria> {
+    @OptIn(ExperimentalTime::class)
     override suspend fun store(entry: AuditLogEntry) {
         println(
             "AUDIT LOG: ${entry.timestamp} | ${entry.method} ${entry.path} | " +

@@ -1,5 +1,8 @@
 package com.turbomates.audit
 
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+
 /**
  * Base interface for all search criteria
  */
@@ -13,14 +16,15 @@ object EmptySearchCriteria : SearchCriteria
 /**
  * Search criteria for InMemoryAuditLogStorage
  */
-data class InMemorySearchCriteria(
+@OptIn(ExperimentalTime::class)
+data class InMemorySearchCriteria (
     val method: String? = null,
     val path: String? = null,
     val principal: String? = null,
     val remoteHost: String? = null,
     val userAgent: String? = null,
-    val timestampFrom: kotlinx.datetime.Instant? = null,
-    val timestampTo: kotlinx.datetime.Instant? = null
+    val timestampFrom: Instant? = null,
+    val timestampTo: Instant? = null
 ) : SearchCriteria
 
 /**
@@ -69,6 +73,7 @@ class InMemoryAuditLogStorage : AuditLogStorage<InMemorySearchCriteria> {
         return entries.drop(offset).take(limit)
     }
 
+    @OptIn(ExperimentalTime::class)
     override suspend fun search(
         criteria: InMemorySearchCriteria,
         limit: Int,

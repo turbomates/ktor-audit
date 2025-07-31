@@ -1,11 +1,14 @@
 package com.turbomates.audit
 
-import kotlinx.datetime.Instant
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+
 
 /**
  * Represents an audit log entry containing information about a request
  */
-data class AuditLogEntry(
+@OptIn(ExperimentalTime::class)
+data class AuditLogEntry (
     val principal: AuditLogPrincipal?,
     val timestamp: Instant,
     val method: String,

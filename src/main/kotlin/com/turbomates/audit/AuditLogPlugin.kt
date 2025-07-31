@@ -6,8 +6,9 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 
 /**
  * Attribute key for marking routes that should be audited
@@ -41,6 +42,7 @@ fun Route.audit(name: String, build: Route.() -> Unit): Route {
 /**
  * Ktor plugin for audit logging
  */
+@OptIn(ExperimentalTime::class)
 val AuditLog = createApplicationPlugin(
     name = "AuditLog",
     createConfiguration = ::AuditLogConfiguration
