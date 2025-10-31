@@ -97,11 +97,10 @@ nexusPublishing {
 
     // Настройки тайм-аутов (опционально)
     connectTimeout.set(Duration.ofMinutes(3))
-    clientTimeout.set(Duration.ofMinutes(3))
+    clientTimeout.set(Duration.ofMinutes(6))
 
-    // Транзакционная публикация с автоматическим релизом
     transitionCheckOptions {
-        maxRetries.set(40)
+        maxRetries.set(80)
         delayBetween.set(Duration.ofSeconds(10))
     }
 }
