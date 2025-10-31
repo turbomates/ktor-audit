@@ -4,9 +4,16 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpMethod
 import io.ktor.http.Parameters
 import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.RouteScopedPlugin
 import io.ktor.server.application.call
 import io.ktor.server.application.createApplicationPlugin
+import io.ktor.server.application.createRouteScopedPlugin
+import io.ktor.server.application.hooks.CallSetup
+import io.ktor.server.application.hooks.MonitoringEvent
+import io.ktor.server.application.hooks.ResponseSent
 import io.ktor.server.application.log
+import io.ktor.server.application.plugin
+import io.ktor.server.auth.AuthenticationChecked
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
@@ -15,22 +22,36 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
+import io.ktor.server.routing.intercept
 import io.ktor.util.AttributeKey
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 
 /**
  * Attribute key for marking routes that should be audited
  */
 val AuditRouteKey = AttributeKey<String>("AuditRoute")
+val AuditLogInterceptors: RouteScopedPlugin<RouteName> = createRouteScopedPlugin(
+    "AuthenticationInterceptors",
+    ::RouteName
+) {
+    on(CallSetup) { call ->
+        call.attributes.put(AuditRouteKey, pluginConfig.name)
+    }
+}
+
+class RouteName() {
+    var name = ""
+}
 
 /**
  * Routing extension function to mark routes for auditing
  */
 fun Route.audit(name: String, build: Route.() -> Unit): Route {
     val route = createChild(object : RouteSelector() {
-        override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
             return RouteSelectorEvaluation.Constant
         }
 
@@ -38,13 +59,9 @@ fun Route.audit(name: String, build: Route.() -> Unit): Route {
     })
 
     // Set the audit attribute on the route itself
-    route.attributes.put(AuditRouteKey, name)
-
-    // Install an interceptor on this route to set the call attribute
-    route.intercept(ApplicationCallPipeline.Plugins) {
-        call.attributes.put(AuditRouteKey, name)
+    route.install(AuditLogInterceptors) {
+        this.name = name
     }
-
     route.build()
     return route
 }
