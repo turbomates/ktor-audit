@@ -1,7 +1,7 @@
 import java.time.Duration
 
 plugins {
-    kotlin("jvm") version "2.2.2"
+    kotlin("jvm") version "2.2.20"
     alias(deps.plugins.nexus.release)
     alias(deps.plugins.test.logger)
     `maven-publish`
