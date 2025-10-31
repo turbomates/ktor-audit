@@ -1,7 +1,7 @@
 import java.time.Duration
 
 plugins {
-    kotlin("jvm") version "2.1.21"
+    kotlin("jvm") version "2.2.2"
     alias(deps.plugins.nexus.release)
     alias(deps.plugins.test.logger)
     `maven-publish`
@@ -33,7 +33,7 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 java {
     withJavadocJar()
