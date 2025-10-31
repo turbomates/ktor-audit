@@ -9,7 +9,7 @@ plugins {
 
 }
 
-group = "com.turbomates.ktor-audit"
+group = "com.turbomates"
 version = System.getenv("RELEASE_VERSION") ?: "0.1.0"
 
 repositories {
