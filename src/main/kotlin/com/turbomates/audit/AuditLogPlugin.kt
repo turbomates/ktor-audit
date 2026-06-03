@@ -75,6 +75,7 @@ val AuditLog = createApplicationPlugin(
     createConfiguration = ::AuditLogConfiguration
 ) {
     val config = pluginConfig
+    val logger = LoggerFactory.getLogger("AuditLog")
 
     // Note: Request body capture using copyTo still consumes the original channel
     // This prevents the application from reading the body, so body capture remains disabled
@@ -110,7 +111,12 @@ val AuditLog = createApplicationPlugin(
         var requestBody: String? = null
         if (config.includeRequestBody && call.request.httpMethod == HttpMethod.Post) {
             requestBody =
-                kotlin.runCatching { call.receiveText() }.getOrDefault("Need to install DoubleReceive feature")
+                kotlin.runCatching { call.receiveText() }.fold(
+                    { it },
+                    {
+                        logger.error("error reading request body: ${it.message}")
+                        "Failed to read request body"
+                    })
         }
         val auditEntry = AuditLogEntry(
             principal = config.principal(call),

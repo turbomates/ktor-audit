@@ -37,7 +37,6 @@ jobs:
       - name: Set output
         id: vars
         run: |
-          echo ${GITHUB_REF_NAME} 
           echo ::set-output name=version::${GITHUB_REF_NAME}
       - name: Setup gradle
         uses: gradle/actions/setup-gradle@v4
