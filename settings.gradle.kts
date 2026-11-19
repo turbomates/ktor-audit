@@ -7,7 +7,7 @@ dependencyResolutionManagement {
         create("deps") {
             version("ktor", "3.3.0")
             version("kotlinx-coroutines-core", "1.10.2")
-            version("detekt", "1.23.6")
+            version("detekt", "2.0.0-alpha.1")
             version("kotlin", "2.2.20")
             version("test_logger", "4.0.0")
             version("nexus_staging", "2.0.0")
@@ -22,7 +22,7 @@ dependencyResolutionManagement {
             library("kotlinx.datetime", "org.jetbrains.kotlinx", "kotlinx-datetime").versionRef("kotlinx-datetime")
 
             plugin("test.logger", "com.adarshr.test-logger").versionRef("test_logger")
-            plugin("detekt", "io.gitlab.arturbosch.detekt").versionRef("detekt")
+            plugin("detekt", "dev.detekt").versionRef("detekt")
             plugin("nexus.release", "io.github.gradle-nexus.publish-plugin").versionRef("nexus_staging")
         }
     }
