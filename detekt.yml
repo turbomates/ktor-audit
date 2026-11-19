@@ -1,0 +1,615 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: false
+  warningsAsErrors: false
+
+comments:
+  AbsentOrWrongFileLicense:
+    active: false
+  CommentOverPrivateFunction:
+    active: false
+  CommentOverPrivateProperty:
+    active: false
+  DeprecatedBlockTag:
+    active: false
+  EndOfSentenceFormat:
+    active: false
+  KDocReferencesNonPublicProperty:
+    active: false
+  OutdatedDocumentation:
+    active: false
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false
+  UndocumentedPublicProperty:
+    active: false
+
+coroutines:
+  GlobalCoroutineUsage:
+    active: true
+  RedundantSuspendModifier:
+    active: true
+  SleepInsteadOfDelay:
+    active: true
+  SuspendFunWithFlowReturnType:
+    active: true
+  InjectDispatcher:
+    active: true
+    excludes: &tests
+      - '**/test/**'
+  SuspendFunWithCoroutineScopeReceiver:
+    active: true
+    excludes: *tests
+
+complexity:
+  ComplexCondition:
+    threshold: 5
+  ComplexInterface:
+    active: true
+    threshold: 11
+    excludes:
+      - '**/provider/**'
+  CyclomaticComplexMethod:
+    active: true
+    excludes:
+      - '**/test/**'
+      - '**/provider/**'
+  LabeledExpression:
+    active: false
+  LargeClass:
+    active: true
+    threshold: 400
+    excludes: *tests
+  LongMethod:
+    active: true
+    threshold: 60
+    excludes:
+      - '**/migrations/**'
+      - '**Router.kt'
+      - '**QO.kt'
+      - '**Entrypoint.kt'
+      - '**Auth.kt'
+      - '**TestEngine.kt'
+    ignoreAnnotated: [ 'Test' ]
+  LongParameterList:
+    excludes:
+      - '**/test/**'
+      - '**/filter/**'
+      - '**Handler.kt'
+      - '**Controller.kt'
+  MethodOverloading:
+    active: false
+  NamedArguments:
+    active: false
+  NestedBlockDepth:
+    active: true
+    threshold: 4
+    excludes:
+      - '**/provider/**'
+  NestedScopeFunctions:
+    active: false
+  ReplaceSafeCallChainWithRun:
+    active: true
+  StringLiteralDuplication:
+    active: false
+    excludes:
+      - '**/test/**'
+      - '**Router.kt'
+      - '**Api.kt'
+    threshold: 3
+    ignoreStringsRegex: '\b(Not yet implemented|default|Authorization|limit_id)\b'
+  TooManyFunctions:
+    active: true
+    thresholdInClasses: 30
+    thresholdInFiles: 30
+    thresholdInObjects: 11
+    excludes:
+      - '**/provider/**'
+
+empty-blocks:
+  active: true
+  EmptyCatchBlock:
+    active: true
+    allowedExceptionNameRegex: '_|(ignore|expected).*'
+  EmptyClassBlock:
+    active: true
+  EmptyDefaultConstructor:
+    active: true
+  EmptyDoWhileBlock:
+    active: true
+  EmptyElseBlock:
+    active: true
+  EmptyFinallyBlock:
+    active: true
+  EmptyForBlock:
+    active: true
+  EmptyFunctionBlock:
+    active: true
+    ignoreOverridden: false
+  EmptyIfBlock:
+    active: true
+  EmptyInitBlock:
+    active: true
+  EmptyKtFile:
+    active: true
+  EmptySecondaryConstructor:
+    active: true
+  EmptyTryBlock:
+    active: true
+  EmptyWhenBlock:
+    active: true
+  EmptyWhileBlock:
+    active: true
+
+exceptions:
+  ExceptionRaisedInUnexpectedLocation:
+    active: true
+  TooGenericExceptionCaught:
+    allowedExceptionNameRegex: '_|(ignore|expected|logging|transient).*'
+  ObjectExtendsThrowable:
+    active: true
+  InstanceOfCheckForException:
+    active: true
+  NotImplementedDeclaration:
+    active: false
+  PrintStackTrace:
+    active: true
+  RethrowCaughtException:
+    active: true
+  ReturnFromFinally:
+    active: true
+    ignoreLabeled: false
+  SwallowedException:
+    active: true
+    ignoredExceptionTypes:
+      - 'InterruptedException'
+      - 'MalformedURLException'
+      - 'NumberFormatException'
+      - 'ParseException'
+    allowedExceptionNameRegex: '_|(ignore|expected).*'
+  ThrowingExceptionFromFinally:
+    active: true
+  ThrowingExceptionInMain:
+    active: true
+  ThrowingExceptionsWithoutMessageOrCause:
+    active: true
+  ThrowingNewInstanceOfSameException:
+    active: true
+  TooGenericExceptionThrown:
+    active: true
+
+formatting:
+  AnnotationOnSeparateLine:
+    active: true
+  AnnotationSpacing:
+    active: true
+  ArgumentListWrapping:
+    active: true
+    maxLineLength: 140
+    excludes:
+      - '**/test/**'
+      - '**Subscriber.kt'
+      - '**QO.kt'
+      - '**Router.kt'
+  BlockCommentInitialStarAlignment:
+    active: true
+  CommentWrapping:
+    active: true
+  DiscouragedCommentLocation:
+    active: true
+  EnumEntryNameCase:
+    active: true
+  FunctionTypeReferenceSpacing:
+    active: true
+  FunKeywordSpacing:
+    active: true
+  KdocWrapping:
+    active: true
+  ModifierListSpacing:
+    active: true
+  Indentation:
+    indentSize: 4
+    excludes: &migrations
+      - '**/migrations/**'
+  MultiLineIfElse:
+    active: true
+  PackageName:
+    active: true
+  SpacingAroundAngleBrackets:
+    active: true
+  SpacingAroundDoubleColon:
+    active: true
+  SpacingAroundUnaryOperator:
+    active: true
+  SpacingBetweenDeclarationsWithAnnotations:
+    active: true
+  SpacingBetweenDeclarationsWithComments:
+    active: true
+  TypeArgumentListSpacing:
+    active: true
+  UnnecessaryParenthesesBeforeTrailingLambda:
+    active: false
+  NoEmptyFirstLineInMethodBlock:
+    active: true
+  NoWildcardImports:
+    active: true
+    packagesToUseImportOnDemandProperty: ''
+  MaximumLineLength:
+    maxLineLength: 140
+    excludes:
+      - '**Router.kt'
+      - '**QO.kt'
+  ParameterListWrapping:
+    active: true
+    maxLineLength: 140
+    autoCorrect: true
+    indentSize: 4
+  NoMultipleSpaces:
+    active: true
+    autoCorrect: true
+  Wrapping:
+    excludes:
+      - '**QO.kt'
+      - '**/test/**'
+
+naming:
+  BooleanPropertyNaming:
+    active: true
+    allowedPattern: '^(is|has|are|should|was|allow|on|can)'
+    excludes:
+      - '**/query/**'
+      - '**/filter/**'
+      - '**/command/**'
+      - '**/event/**'
+      - '**/sdk/**'
+      - '**/configuration/**'
+      - '**QO.kt'
+  ClassNaming:
+    active: true
+    excludes: *migrations
+  EnumNaming:
+    active: true
+  ConstructorParameterNaming:
+    active: true
+    excludeClassPattern: 'SchemaObject|ParameterObject|SecuritySchemaObject|PathItemObject'
+  ForbiddenClassName:
+    active: true
+    forbiddenName:
+      - 'Service'
+  FunctionMaxLength:
+    active: true
+    maximumFunctionNameLength: 40
+    excludes: *tests
+  FunctionMinLength:
+    active: true
+    minimumFunctionNameLength: 2
+  FunctionNaming:
+    active: true
+    excludes: *tests
+  FunctionParameterNaming:
+    active: true
+  InvalidPackageDeclaration:
+    active: true
+  LambdaParameterNaming:
+    active: true
+  MatchingDeclarationName:
+    active: true
+    excludes:
+      - "**/feed/**"
+  NoNameShadowing:
+    active: true
+  NonBooleanPropertyPrefixedWithIs:
+    active: false
+    excludes:
+      - '**Filter.kt'
+  PackageNaming:
+    active: true
+  TopLevelPropertyNaming:
+    active: true
+  MemberNameEqualsClassName:
+    active: true
+  VariableMaxLength:
+    active: true
+  VariableMinLength:
+    active: true
+    minimumVariableNameLength: 2
+  VariableNaming:
+    active: true
+
+performance:
+  ArrayPrimitive:
+    active: true
+  CouldBeSequence:
+    active: true
+    threshold: 3
+  ForEachOnRange:
+    active: true
+  UnnecessaryTemporaryInstantiation:
+    active: true
+  SpreadOperator:
+    active: false
+    excludes:
+      - '**Router.kt'
+      - '**Auth.kt'
+      - '**/exposed/**'
+
+potential-bugs:
+  AvoidReferentialEquality:
+    active: true
+  CastToNullableType:
+    active: true
+  DontDowncastCollectionTypes:
+    active: true
+  DoubleMutabilityForCollection:
+    active: true
+  ElseCaseInsteadOfExhaustiveWhen:
+    active: true
+    excludes: *tests
+  EqualsAlwaysReturnsTrueOrFalse:
+    active: true
+  EqualsWithHashCodeExist:
+    active: true
+  ExitOutsideMain:
+    active: true
+  ExplicitGarbageCollectionCall:
+    active: true
+  HasPlatformType:
+    active: true
+  IgnoredReturnValue:
+    active: true
+  ImplicitDefaultLocale:
+    active: true
+  ImplicitUnitReturnType:
+    active: false
+  InvalidRange:
+    active: true
+  IteratorHasNextCallsNextMethod:
+    active: true
+  IteratorNotThrowingNoSuchElementException:
+    active: true
+  LateinitUsage:
+    active: false
+  MapGetWithNotNullAssertionOperator:
+    active: true
+  MissingPackageDeclaration:
+    active: true
+  NullCheckOnMutableProperty:
+    active: true
+  NullableToStringCall:
+    active: false
+    excludes: *tests
+  UnconditionalJumpStatementInLoop:
+    active: true
+  UnnecessaryNotNullOperator:
+    active: true
+  UnnecessarySafeCall:
+    active: true
+  UnreachableCatchBlock:
+    active: true
+  UnreachableCode:
+    active: true
+  UnsafeCallOnNullableType:
+    active: false # todo: enable later?
+    excludes: *tests
+  UnsafeCast:
+    active: true
+  UnusedUnaryOperator:
+    active: true
+  UselessPostfixExpression:
+    active: true
+  WrongEqualsTypeParameter:
+    active: true
+
+style:
+  CanBeNonNullable:
+    active: true
+  CascadingCallWrapping:
+    active: true
+    includeElvis: false
+    excludes: *tests
+  ClassOrdering:
+    active: true
+    excludes:
+      - '**/model/**'
+  CollapsibleIfStatements:
+    active: true
+  DataClassContainsFunctions:
+    active: false
+  DataClassShouldBeImmutable:
+    active: true
+    excludes:
+      - '**/command/**'
+      - '**QO.kt'
+      - '**/query/**'
+      - '**/databuilders/**'
+      - '**Request.kt'
+  DestructuringDeclarationWithTooManyEntries:
+    active: true
+    maxDestructuringEntries: 3
+  EqualsNullCall:
+    active: true
+  EqualsOnSignatureLine:
+    active: true
+  ExplicitCollectionElementAccessMethod:
+    active: true
+  ExplicitItLambdaParameter:
+    active: true
+  ExpressionBodySyntax:
+    active: false
+  ForbiddenComment:
+    active: true
+    allowedPatterns: "TODO:"
+  ForbiddenImport:
+    active: true
+    imports:
+      - java.time.LocalDateTime
+      - org.jetbrains.exposed.sql.javatime.datetime
+    excludes:
+      - '**OffsetDateTime.kt**'
+  ForbiddenMethodCall:
+    active: true
+    methods:
+      - kotlin.io.print
+      - kotlin.io.println
+      - java.time.LocalDateTime.now
+      - java.time.OffsetDateTime.now
+    excludes:
+      - '**OffsetDateTime.kt**'
+  ForbiddenSuppress:
+    active: true
+    rules:
+#      - 'LongParameterList'
+#      - 'StringLiteralDuplication'
+#      - 'ComplexMethod'
+#      - 'SpreadOperator'
+#      - 'LongMethod'
+#      - 'ComplexInterface'
+  ForbiddenVoid:
+    active: true
+  FunctionOnlyReturningConstant:
+    active: true
+  LoopWithTooManyJumpStatements:
+    active: true
+    maxJumpCount: 1
+  MagicNumber:
+    active: true
+    excludes:
+      - '**/test/**'
+      - '**/betradar/**'
+      - '**Main.kt'
+      - '**Worker**'
+    ignoreRanges: true
+    ignorePropertyDeclaration: true
+    ignoreEnums: true
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+      - '3'
+      - '403'
+      - '422'
+      - '200'
+  MandatoryBracesLoops:
+    active: false
+  MaxChainedCallsOnSameLine:
+    active: false
+  MaxLineLength:
+    active: false
+    maxLineLength: 140
+  MayBeConst:
+    active: true
+  ModifierOrder:
+    active: true
+  MultilineLambdaItParameter:
+    active: false
+  NestedClassesVisibility:
+    active: true
+  NewLineAtEndOfFile:
+    active: true
+  NoTabs:
+    active: true
+  NullableBooleanCheck:
+    active: true
+    excludes:
+      - '**/provider/**'
+  ObjectLiteralToLambda:
+    active: true
+  OptionalAbstractKeyword:
+    active: true
+  OptionalUnit:
+    active: true
+  BracesOnWhenStatements:
+    active: false
+  PreferToOverPairSyntax:
+    active: true
+  RedundantExplicitType:
+    active: true
+  ProtectedMemberInFinalClass:
+    active: true
+  RedundantVisibilityModifierRule:
+    active: true
+  ReturnCount:
+    active: false # todo: enable later?
+  SafeCast:
+    active: true
+  SerialVersionUIDInSerializableClass:
+    active: true
+  SpacingBetweenPackageAndImports:
+    active: true
+  ThrowsCount:
+    active: true
+  TrailingWhitespace:
+    active: true
+  UnderscoresInNumericLiterals:
+    active: true
+    acceptableLength: 5
+    excludes: *tests
+  UnnecessaryAbstractClass:
+    active: false # todo: investigate repositories
+  UnnecessaryAnnotationUseSiteTarget:
+    active: true
+  UnnecessaryApply:
+    active: true
+  UnnecessaryBackticks:
+    active: true
+    excludes: *tests
+  UnnecessaryFilter:
+    active: true
+  UnnecessaryInheritance:
+    active: true
+  UnnecessaryInnerClass:
+    active: true
+  UnnecessaryLet:
+    active: true
+  UnnecessaryParentheses:
+    active: false
+  UntilInsteadOfRangeTo:
+    active: true
+  UnusedImports:
+    active: true
+    excludes:
+      - '**/test/**' # TODO: false positives on kotlinx.serialization.json.put try after update
+  UnusedPrivateClass:
+    active: true
+  UnusedPrivateMember:
+    active: true
+  UseAnyOrNoneInsteadOfFind:
+    active: true
+  UseArrayLiteralsInAnnotations:
+    active: true
+  UseCheckNotNull:
+    active: true
+  UseCheckOrError:
+    active: true
+  UseDataClass:
+    active: true
+  UseEmptyCounterpart:
+    active: false
+  UseIfEmptyOrIfBlank:
+    active: true
+  UseIfInsteadOfWhen:
+    active: true
+    excludes:
+      - '**ErrorHandling.kt'
+  UseIsNullOrEmpty:
+    active: true
+  UseOrEmpty:
+    active: true
+  UseRequire:
+    active: true
+  UseRequireNotNull:
+    active: true
+  UselessCallOnNotNull:
+    active: true
+  UtilityClassWithPublicConstructor:
+    active: true
+  VarCouldBeVal:
+    active: true
+  WildcardImport:
+    active: true
+  RedundantHigherOrderMapUsage:
+    active: true

@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version "2.2.20"
     alias(deps.plugins.nexus.release)
     alias(deps.plugins.test.logger)
+    alias(deps.plugins.detekt)
     `maven-publish`
     signing
 
@@ -34,6 +35,17 @@ tasks.test {
 }
 kotlin {
     jvmToolchain(21)
+}
+detekt {
+    toolVersion = deps.versions.detekt.get()
+    buildUponDefaultConfig = true
+    parallel = true
+    config.setFrom(files("$projectDir/detekt.yml"))
+}
+// The existing code has findings, so detekt reports through reviewdog on pull requests instead of failing `build`,
+// which the release workflow runs.
+tasks.named("check").configure {
+    setDependsOn(dependsOn.filterNot { it is TaskProvider<*> && it.name == "detekt" })
 }
 java {
     withJavadocJar()
