@@ -206,7 +206,8 @@ data class AuditLogEntry(
     val headers: Map<String, List<String>>,         // Request headers (filtered)
     val remoteHost: String?,             // Client IP address
     val userAgent: String?,              // User-Agent header
-    val requestBody: String?             // Request body (for POST requests, null otherwise)
+    val requestBody: String?,            // Request body (for POST requests, null otherwise)
+    val metadata: Map<String, String>    // Application-specific facts (see `metadata` option), empty by default
 )
 
 data class AuditLogPrincipal(
@@ -227,6 +228,7 @@ data class AuditLogPrincipal(
 | `excludedHeaders` | `Set<String>` | `setOf("authorization", "cookie", "set-cookie")` | Headers to exclude from logging |
 | `excludedPaths` | `Set<String>` | `setOf("/health", "/metrics")` | Paths to exclude from audit logging |
 | `principal` | `(ApplicationCall) -> AuditLogPrincipal?` | `{ null }` | Function to extract principal information from authenticated requests |
+| `metadata` | `(ApplicationCall) -> Map<String, String>` | `{ emptyMap() }` | Function to attach application-specific facts to the entry, e.g. on whose behalf an impersonated request was made |
 | `shouldAudit` | `(String, String) -> Boolean` | Excludes paths in `excludedPaths` | Custom function to determine if request should be audited |
 | `headerFilter` | `(Map<String, List<String>>) -> Map<String, List<String>>` | Filters based on `excludedHeaders` | Custom header filtering function |
 

@@ -17,7 +17,9 @@ data class AuditLogEntry (
     val headers: Map<String, List<String>>,
     val remoteHost: String?,
     val userAgent: String?,
-    val requestBody: String? = null
+    val requestBody: String? = null,
+    /** Application-specific facts about the request, e.g. on whose behalf it was made */
+    val metadata: Map<String, String> = emptyMap()
 )
 
 data class AuditLogPrincipal(

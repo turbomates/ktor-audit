@@ -127,7 +127,8 @@ val AuditLog = createApplicationPlugin(
             headers = headers,
             remoteHost = remoteHost,
             userAgent = userAgent,
-            requestBody = requestBody
+            requestBody = requestBody,
+            metadata = config.metadata(call)
         )
 
         // Store the audit log entry asynchronously

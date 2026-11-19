@@ -48,6 +48,12 @@ class AuditLogConfiguration {
     var principal: (io.ktor.server.application.ApplicationCall) -> AuditLogPrincipal? = { null }
 
     /**
+     * Function to extract application-specific metadata from the call.
+     * Called while the call is being responded to, so the principal and call attributes are available.
+     */
+    var metadata: (ApplicationCall) -> Map<String, String> = { emptyMap() }
+
+    /**
      * Function to determine if a request should be audited
      * Returns true if the request should be audited, false otherwise
      */

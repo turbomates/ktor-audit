@@ -143,6 +143,37 @@ class AuditLogPluginTest {
     }
 
     @Test
+    fun testAuditLogWithMetadata() = testApplication {
+        val storage = InMemoryAuditLogStorage()
+
+        application {
+            install(AuditLog) {
+                this.storage = storage
+                metadata = { call ->
+                    call.request.headers["X-On-Behalf-Of"]?.let { mapOf("onBehalfOf" to it) }.orEmpty()
+                }
+            }
+
+            routing {
+                post("/test") {
+                    call.respond("OK")
+                }
+            }
+        }
+
+        client.post("/test") { header("X-On-Behalf-Of", "player-1") }
+        client.post("/test")
+
+        // Wait a bit for async storage
+        delay(100)
+
+        val entries = storage.getAllEntries()
+        assertEquals(2, entries.size)
+        assertEquals(mapOf("onBehalfOf" to "player-1"), entries[0].metadata)
+        assertTrue(entries[1].metadata.isEmpty())
+    }
+
+    @Test
     fun testAuditLogExcludedPaths() = testApplication {
         val storage = InMemoryAuditLogStorage()
 
